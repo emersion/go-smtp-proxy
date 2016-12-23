@@ -2,9 +2,8 @@ package proxy
 
 import (
 	"io"
-	"net/smtp"
 
-	server "github.com/emersion/go-smtp-server"
+	"github.com/emersion/go-smtp"
 )
 
 type user struct {
@@ -13,12 +12,12 @@ type user struct {
 	username string
 }
 
-func (u *user) Send(msg *server.Message) error {
-	if err := u.c.Mail(msg.From); err != nil {
+func (u *user) Send(from string, to []string, r io.Reader) error {
+	if err := u.c.Mail(from); err != nil {
 		return err
 	}
-	for _, to := range msg.To {
-		if err := u.c.Rcpt(to); err != nil {
+	for _, rcpt := range to {
+		if err := u.c.Rcpt(rcpt); err != nil {
 			return err
 		}
 	}
@@ -29,7 +28,7 @@ func (u *user) Send(msg *server.Message) error {
 	}
 	defer wc.Close()
 
-	_, err = io.Copy(wc, msg.Data)
+	_, err = io.Copy(wc, r)
 	return err
 }
 

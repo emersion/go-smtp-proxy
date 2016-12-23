@@ -3,9 +3,9 @@ package proxy
 import (
 	"crypto/tls"
 	"net"
-	"net/smtp"
 
-	server "github.com/emersion/go-smtp-server"
+	"github.com/emersion/go-sasl"
+	"github.com/emersion/go-smtp"
 )
 
 type Security int
@@ -60,7 +60,7 @@ func (be *Backend) login(username, password string) (*smtp.Client, error) {
 		}
 	}
 
-	auth := smtp.PlainAuth("", username, password, host)
+	auth := sasl.NewPlainClient("", username, password)
 	if err := c.Auth(auth); err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func (be *Backend) login(username, password string) (*smtp.Client, error) {
 	return c, nil
 }
 
-func (be *Backend) Login(username, password string) (server.User, error) {
+func (be *Backend) Login(username, password string) (smtp.User, error) {
 	c, err := be.login(username, password)
 	if err != nil {
 		return nil, err
