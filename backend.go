@@ -11,9 +11,9 @@ import (
 type Security int
 
 const (
-	SecurityNone Security = iota
-	SecuritySTARTTLS
-	SecurityTLS
+	SecurityTLS Security = iota
+	SecurityStartTLS
+	SecurityNone
 )
 
 type Backend struct {
@@ -25,7 +25,7 @@ type Backend struct {
 }
 
 func New(addr string) *Backend {
-	return &Backend{Addr: addr}
+	return &Backend{Addr: addr, Security: SecurityStartTLS}
 }
 
 func NewTLS(addr string, tlsConfig *tls.Config) *Backend {
@@ -54,7 +54,7 @@ func (be *Backend) newConn() (*smtp.Client, error) {
 		return nil, err
 	}
 
-	if be.Security == SecuritySTARTTLS {
+	if be.Security == SecurityStartTLS {
 		if err := c.StartTLS(be.TLSConfig); err != nil {
 			return nil, err
 		}
