@@ -36,7 +36,7 @@ func NewTLS(addr string, tlsConfig *tls.Config) *Backend {
 	}
 }
 
-func (be *Backend) login(username, password string) (*smtp.Client, error) {
+func (be *Backend) newConn() (*smtp.Client, error) {
 	var conn net.Conn
 	var err error
 	if be.Security == SecurityTLS {
@@ -60,6 +60,15 @@ func (be *Backend) login(username, password string) (*smtp.Client, error) {
 		}
 	}
 
+	return c, nil
+}
+
+func (be *Backend) login(username, password string) (*smtp.Client, error) {
+	c, err := be.newConn()
+	if err != nil {
+		return nil, err
+	}
+
 	auth := sasl.NewPlainClient("", username, password)
 	if err := c.Auth(auth); err != nil {
 		return nil, err
@@ -75,9 +84,21 @@ func (be *Backend) Login(username, password string) (smtp.User, error) {
 	}
 
 	u := &user{
-		c:        c,
-		be:       be,
-		username: username,
+		c:  c,
+		be: be,
+	}
+	return u, nil
+}
+
+func (be *Backend) AnonymousLogin() (smtp.User, error) {
+	c, err := be.newConn()
+	if err != nil {
+		return nil, err
+	}
+
+	u := &user{
+		c:  c,
+		be: be,
 	}
 	return u, nil
 }

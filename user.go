@@ -7,9 +7,8 @@ import (
 )
 
 type user struct {
-	c        *smtp.Client
-	be       *Backend
-	username string
+	c  *smtp.Client
+	be *Backend
 }
 
 func (u *user) Send(from string, to []string, r io.Reader) error {
