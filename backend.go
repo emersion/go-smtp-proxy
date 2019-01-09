@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"crypto/tls"
+	"errors"
 	"net"
 
 	"github.com/emersion/go-sasl"
@@ -20,6 +21,8 @@ type Backend struct {
 	Addr      string
 	Security  Security
 	TLSConfig *tls.Config
+	LMTP      bool
+	Host      string
 
 	unexported struct{}
 }
@@ -36,10 +39,24 @@ func NewTLS(addr string, tlsConfig *tls.Config) *Backend {
 	}
 }
 
+func NewLMTP(addr string, host string) *Backend {
+	return &Backend{
+		Addr: addr,
+		Security: SecurityNone,
+		LMTP: true,
+		Host: host,
+	}
+}
+
 func (be *Backend) newConn() (*smtp.Client, error) {
 	var conn net.Conn
 	var err error
-	if be.Security == SecurityTLS {
+	if be.LMTP {
+		if be.Security != SecurityNone {
+			return nil, errors.New("smtp-proxy: LMTP doesn't support TLS")
+		}
+		conn, err = net.Dial("unix", be.Addr)
+	} else if be.Security == SecurityTLS {
 		conn, err = tls.Dial("tcp", be.Addr, be.TLSConfig)
 	} else {
 		conn, err = net.Dial("tcp", be.Addr)
@@ -48,8 +65,16 @@ func (be *Backend) newConn() (*smtp.Client, error) {
 		return nil, err
 	}
 
-	host, _, _ := net.SplitHostPort(be.Addr)
-	c, err := smtp.NewClient(conn, host)
+	var c *smtp.Client
+	if be.LMTP {
+		c, err = smtp.NewClientLMTP(conn, be.Host)
+	} else {
+		host := be.Host
+		if host == "" {
+			host, _, _ = net.SplitHostPort(be.Addr)
+		}
+		c, err = smtp.NewClient(conn, host)
+	}
 	if err != nil {
 		return nil, err
 	}
