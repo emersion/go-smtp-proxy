@@ -17,8 +17,8 @@ const (
 )
 
 type Backend struct {
-	Addr string
-	Security Security
+	Addr      string
+	Security  Security
 	TLSConfig *tls.Config
 
 	unexported struct{}
@@ -30,8 +30,8 @@ func New(addr string) *Backend {
 
 func NewTLS(addr string, tlsConfig *tls.Config) *Backend {
 	return &Backend{
-		Addr: addr,
-		Security: SecurityTLS,
+		Addr:      addr,
+		Security:  SecurityTLS,
 		TLSConfig: tlsConfig,
 	}
 }
@@ -75,8 +75,8 @@ func (be *Backend) Login(username, password string) (smtp.User, error) {
 	}
 
 	u := &user{
-		c: c,
-		be: be,
+		c:        c,
+		be:       be,
 		username: username,
 	}
 	return u, nil

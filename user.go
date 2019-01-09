@@ -7,8 +7,8 @@ import (
 )
 
 type user struct {
-	c *smtp.Client
-	be *Backend
+	c        *smtp.Client
+	be       *Backend
 	username string
 }
 
