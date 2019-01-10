@@ -25,10 +25,14 @@ func (u *user) Send(from string, to []string, r io.Reader) error {
 	if err != nil {
 		return err
 	}
-	defer wc.Close()
 
 	_, err = io.Copy(wc, r)
-	return err
+	if err != nil {
+		wc.Close()
+		return err
+	}
+
+	return wc.Close()
 }
 
 func (u *user) Logout() error {
