@@ -41,10 +41,10 @@ func NewTLS(addr string, tlsConfig *tls.Config) *Backend {
 
 func NewLMTP(addr string, host string) *Backend {
 	return &Backend{
-		Addr: addr,
+		Addr:     addr,
 		Security: SecurityNone,
-		LMTP: true,
-		Host: host,
+		LMTP:     true,
+		Host:     host,
 	}
 }
 
@@ -102,28 +102,28 @@ func (be *Backend) login(username, password string) (*smtp.Client, error) {
 	return c, nil
 }
 
-func (be *Backend) Login(username, password string) (smtp.User, error) {
+func (be *Backend) Login(state *smtp.ConnectionState, username, password string) (smtp.Session, error) {
 	c, err := be.login(username, password)
 	if err != nil {
 		return nil, err
 	}
 
-	u := &user{
+	s := &session{
 		c:  c,
 		be: be,
 	}
-	return u, nil
+	return s, nil
 }
 
-func (be *Backend) AnonymousLogin() (smtp.User, error) {
+func (be *Backend) AnonymousLogin(state *smtp.ConnectionState) (smtp.Session, error) {
 	c, err := be.newConn()
 	if err != nil {
 		return nil, err
 	}
 
-	u := &user{
+	s := &session{
 		c:  c,
 		be: be,
 	}
-	return u, nil
+	return s, nil
 }
