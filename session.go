@@ -15,8 +15,8 @@ func (s *session) Reset() {
 	s.c.Reset()
 }
 
-func (s *session) Mail(from string) error {
-	return s.c.Mail(from)
+func (s *session) Mail(from string, opts smtp.MailOptions) error {
+	return s.c.Mail(from, &opts)
 }
 
 func (s *session) Rcpt(to string) error {
