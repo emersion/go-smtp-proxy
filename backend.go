@@ -23,6 +23,7 @@ type Backend struct {
 	TLSConfig *tls.Config
 	LMTP      bool
 	Host      string
+	LocalName string
 
 	unexported struct{}
 }
@@ -77,6 +78,13 @@ func (be *Backend) newConn() (*smtp.Client, error) {
 	}
 	if err != nil {
 		return nil, err
+	}
+
+	if be.LocalName != "" {
+		err = c.Hello(be.LocalName)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if be.Security == SecurityStartTLS {
